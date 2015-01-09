@@ -33,7 +33,7 @@ app.get('/operation/determinant', function(req, res) {
 	var matrices = parseParameters(req);
 	if (matrices.length > 0) {
 		var result = math.det(math.matrix(matrices[0]));
-		res.send(result);
+		res.send(result.toString());
 	} else {
 		res.send('You have to provide matrix.')
 	}
