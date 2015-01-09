@@ -1,45 +1,89 @@
 var express = require('express')
 var math = require('mathjs')
+var numbers = require('numbers')
 var app = express()
 
-app.all('*', function(req, res, next) {
+app.use('/', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Request-With, Content-Type, Accept');
   next();
 });
-
-app.get('/', function(req, res) {
-	res.type('text/plain');
-	res.send('i am a beautiful butterfly')
-})
 
 app.get('/operation/add', function(req, res) {
 	res.type('text/plain');
 	var matrices = parseParameters(req);
-	var result = math.add(matrices[0], matrices[1]);
-	res.send(result);
+	if (matrices.length == 2) {
+		var result = math.add(math.matrix(matrices[0]), math.matrix(matrices[1]));
+		res.send(result);
+	} else {
+		res.send('You have to send two Matrix objects.')
+	}
 })
 
 app.get('/operation/multiply', function(req, res) {
 	res.type('text/plain');
 	var matrices = parseParameters(req);
-	var result = math.multiply(matrices[0], matrices[1]);
+	var result = math.multiply(math.matrix(matrices[0]), math.matrix(matrices[1]));
 	res.send(result);
+})
+
+app.get('/operation/determinant', function(req, res) {
+	res.type('text/plain');
+	var matrices = parseParameters(req);
+	if (matrices.length > 0) {
+		var result = math.det(math.matrix(matrices[0]));
+		res.send(result);
+	} else {
+		res.send('You have to provide matrix.')
+	}
+})
+
+app.get('/operation/transposition', function(req, res) {
+	res.type('text/plain');
+	var matrices = parseParameters(req);
+	var result = math.transpose(math.matrix(matrices[0]));
+	res.send(result);
+})
+
+app.get('/operation/trace', function(req, res) {
+	res.type('text/plain');
+	var matrices = parseParameters(req);
+	if (matrices.length > 0) {
+		var matrix = matrices[0]
+		if (isMatrixSquare(matrix)) {
+			var trace = 0;
+			for (var i = 0; i < matrix.length; i++) {
+				trace += matrix[i][i];
+			}
+			res.send(trace.toString());
+		} else {
+			res.send('Matrix must be squared');
+		}
+	} else {
+		res.send('You have to provide matrix.')
+	}
 })
 
 function parseParameters(requestParams) {
 	var data = [];
-	var firstArrayMatrix = JSON.parse(requestParams.query['firstMatrix']);
-	if (firstArrayMatrix) {
-		data.push(math.matrix(firstArrayMatrix))
+	if (requestParams.query['firstMatrix']) {
+		data.push(JSON.parse(requestParams.query['firstMatrix']));
 	}
-	var secondArrayMatrix = JSON.parse(requestParams.query['secondMatrix']);
-	if (secondArrayMatrix) {
-		data.push(math.matrix(secondArrayMatrix))
+
+	if (requestParams.query['secondMatrix']) {
+		data.push(JSON.parse(requestParams.query['secondMatrix']));
 	}
 	return data;
 }
 
+function isMatrixSquare(matrix) {
+	for (var row = 0; row < matrix.length; row++ ) {
+		if (matrix[row].length != matrix.length) {
+			return false;
+		}
+	}
+	return true
+}
 
 app.listen(process.env.PORT || 4730)
