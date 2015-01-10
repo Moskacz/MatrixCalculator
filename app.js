@@ -1,6 +1,7 @@
 var express = require('express')
 var math = require('mathjs')
 var numbers = require('numbers')
+var numeric = require('numeric')
 var app = express()
 
 app.use('/', function(req, res, next) {
@@ -14,7 +15,7 @@ app.get('/operation/add', function(req, res) {
 	res.type('text/plain');
 	var matrices = parseParameters(req);
 	if (matrices.length == 2) {
-		var result = math.add(math.matrix(matrices[0]), math.matrix(matrices[1]));
+		var result = (math.add(math.matrix(matrices[0]), math.matrix(matrices[1]))).valueOf();
 		res.send(result);
 	} else {
 		res.send('You have to send two Matrix objects.')
@@ -24,7 +25,7 @@ app.get('/operation/add', function(req, res) {
 app.get('/operation/multiply', function(req, res) {
 	res.type('text/plain');
 	var matrices = parseParameters(req);
-	var result = math.multiply(math.matrix(matrices[0]), math.matrix(matrices[1]));
+	var result = (math.multiply(math.matrix(matrices[0]), math.matrix(matrices[1]))).valueOf();
 	res.send(result);
 })
 
@@ -42,7 +43,7 @@ app.get('/operation/determinant', function(req, res) {
 app.get('/operation/transposition', function(req, res) {
 	res.type('text/plain');
 	var matrices = parseParameters(req);
-	var result = math.transpose(math.matrix(matrices[0]));
+	var result = (math.transpose(math.matrix(matrices[0]))).valueOf();
 	res.send(result);
 })
 
@@ -62,6 +63,40 @@ app.get('/operation/trace', function(req, res) {
 		}
 	} else {
 		res.send('You have to provide matrix.')
+	}
+})
+
+app.get('/operation/upperTriangeMatrix', function(req, res){
+	res.type('text/plain');
+	var matrices = parseParameters(req);
+	if (matrices.length > 0) {
+		var matrix = matrices[0];
+		if (isMatrixSquare(matrix)) {
+			for (var i = 0; i < matrix.length; i++) {
+				for (var j = 0; j < matrix[i].length; j++) {
+					if (i > j) {
+						matrix[i][j] = 0;
+					}
+				}
+			}
+			res.send(matrix);
+		} else {
+			res.send('Matrix must be squared')
+		}
+	} else {
+		res.send('You have to provide matrix');
+	}
+})
+
+app.get('/operation/LUdecomposition', function(req, res) {
+	res.type('text/plain');
+	var matrices = parseParameters(req);
+	if (matrices.length > 0) {
+		var matrix = matrices[0];		
+		var result = numeric.cLU(matrix);
+		res.send(result);
+	} else {
+		res.send('You have to provide matrix');
 	}
 })
 
